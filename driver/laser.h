@@ -1,6 +1,7 @@
 #ifndef __LASER_H
 #define __LASER_H
 #include "phread.h"
+#include "common.h"
 
 class laser
 {
