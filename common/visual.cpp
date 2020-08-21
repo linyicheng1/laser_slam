@@ -48,7 +48,28 @@ void visualization::draw_pose()
 
 void visualization::draw_imu()
 {
+    Eigen::Vector3f Ow;
 
+    Eigen::Matrix3f rotation_matrix;
+    rotation_matrix  = Eigen::AngleAxisf(imu_.angle_z, Eigen::Vector3f::UnitZ()) *
+                       Eigen::AngleAxisf(imu_.angle_y, Eigen::Vector3f::UnitY()) *
+                       Eigen::AngleAxisf(imu_.angle_x, Eigen::Vector3f::UnitX());
+
+    Eigen::Vector3f Xw = rotation_matrix * (10*imu_.acc_x * Eigen::Vector3f(1, 0, 0)) + Ow;
+    Eigen::Vector3f Yw = rotation_matrix * (10*imu_.acc_y * Eigen::Vector3f(0, 1, 0)) + Ow;
+    Eigen::Vector3f Zw = rotation_matrix * (10*imu_.acc_z * Eigen::Vector3f(0, 0, 1)) + Ow;
+
+    glBegin(GL_LINES);
+    glColor3f(1.0, 0.0, 0.0);
+    glVertex3f(Ow[0], Ow[1], Ow[2]);
+    glVertex3f(Xw[0], Xw[1], Xw[2]);
+    glColor3f(0.0, 1.0, 0.0);
+    glVertex3f(Ow[0], Ow[1], Ow[2]);
+    glVertex3f(Yw[0], Yw[1], Yw[2]);
+    glColor3f(0.0, 0.0, 1.0);
+    glVertex3f(Ow[0], Ow[1], Ow[2]);
+    glVertex3f(Zw[0], Zw[1], Zw[2]);
+    glEnd();
 }
 
 void visualization::draw_laser()

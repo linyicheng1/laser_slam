@@ -18,15 +18,14 @@ typedef struct bag
     float time_stamp;
 }imu_bag;
 
-typedef std::list<imu_bag> imu_data_;
+typedef std::list<imu_bag> imu_data;
 class imu
 {
 public:
     imu() =default;
     ~imu() = default;
-
-private:
-    imu_data_ data_;
+    imu_data get_imu_data(){return data_;}
+    imu_data data_;
     bool verbose = true;
 };
 
