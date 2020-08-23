@@ -9,13 +9,16 @@ visualization::visualization(/* args */)
 
 void visualization::draw_trajectory()
 {
-    for (size_t i = 0; i < pos_.size(); i++)
+    glLineWidth(3);
+    if(pos_.size()<2)
+        return;
+    for (size_t i = 1; i < pos_.size()-1; i++)
     {
         glColor3f(0.0, 1.0, 0.0);
         glBegin(GL_LINES);
-        auto p1 = pos_[i], p2 = pos_[i + 1];
-        glVertex3f(p1[0], p1[1], p1[2]);
-        glVertex3f(p2[0], p2[1], p2[2]);
+        auto p1 = pos_[i-1], p2 = pos_[i];
+        glVertex3f(p1[0], p1[1], 0);
+        glVertex3f(p2[0], p2[1], 0);
         glEnd();
     }
 }
@@ -55,9 +58,9 @@ void visualization::draw_imu()
                        Eigen::AngleAxisf(imu_.angle_y, Eigen::Vector3f::UnitY()) *
                        Eigen::AngleAxisf(imu_.angle_x, Eigen::Vector3f::UnitX());
 
-    Eigen::Vector3f Xw = rotation_matrix * (10*imu_.acc_x * Eigen::Vector3f(1, 0, 0)) + Ow;
-    Eigen::Vector3f Yw = rotation_matrix * (10*imu_.acc_y * Eigen::Vector3f(0, 1, 0)) + Ow;
-    Eigen::Vector3f Zw = rotation_matrix * (10*imu_.acc_z * Eigen::Vector3f(0, 0, 1)) + Ow;
+    Eigen::Vector3f Xw = rotation_matrix * (imu_.acc_x * Eigen::Vector3f(1, 0, 0)) + Ow;
+    Eigen::Vector3f Yw = rotation_matrix * (imu_.acc_y * Eigen::Vector3f(0, 1, 0)) + Ow;
+    Eigen::Vector3f Zw = rotation_matrix * (imu_.acc_z * Eigen::Vector3f(0, 0, 1)) + Ow;
 
     glBegin(GL_LINES);
     glColor3f(1.0, 0.0, 0.0);
@@ -75,13 +78,24 @@ void visualization::draw_imu()
 void visualization::draw_laser()
 {
 
+    glPointSize(3);
+    for(auto pt:laser_)
+    {
+        if(pt[0]>0)
+        {
+            glColor3f(0.0, 0.0, 1.0);
+            glBegin(GL_POINTS);
+            glVertex3f(pt[1]*cos(pt[2]+laser_pos_[2]) + laser_pos_[0], pt[1]*sin(pt[2]+laser_pos_[2]) + laser_pos_[1], 0);
+            glEnd();
+        }
+    }
 }
 
 void visualization::process()
 {
     draw_trajectory();
     draw_pose();
-    draw_imu();
+    //draw_imu();
     draw_laser();
 }
 
@@ -91,13 +105,13 @@ visualization::~visualization()
 void* visualization::pthread_fun(void* __this)
 {
     auto * _this =(thread *)__this;
-    pangolin::CreateWindowAndBind("Main",640,480);
+    pangolin::CreateWindowAndBind("Main",1080,960);
     glEnable(GL_DEPTH_TEST);
 
     // Define Projection and initial ModelView matrix
     pangolin::OpenGlRenderState s_cam(
-            pangolin::ProjectionMatrix(640,480,420,420,320,240,0.2,100),
-            pangolin::ModelViewLookAt(-2,2,-2, 0,0,0, pangolin::AxisY)
+            pangolin::ProjectionMatrix(1080,960,420,420,640,480,0.2,100),
+            pangolin::ModelViewLookAt(1,1,1, 0,0,0, pangolin::AxisZ)
     );
 
     // Create Interactive View in window
@@ -111,6 +125,7 @@ void* visualization::pthread_fun(void* __this)
         {
             // Clear screen and activate view to render into
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClearColor(1.0f,1.0f,1.0f,1.0f);
             d_cam.Activate(s_cam);
 
             // draw 3d view

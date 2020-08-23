@@ -4,6 +4,12 @@ set(CMAKE_CXX_STANDARD 11)
 
 find_package(Eigen3 REQUIRED)
 find_package(Pangolin 0.4 REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+        roscpp
+        std_msgs
+        pcl_conversions
+        pcl_ros
+        )
 
 include_directories(
         ./common
@@ -11,6 +17,8 @@ include_directories(
         ./driver
         /usr/include/eigen3
         ${Pangolin_INCLUDE_DIRS}
+        ${catkin_INCLUDE_DIRS}
+        /opt/ros/melodic/include/csm
 )
 
 add_library(
@@ -19,6 +27,7 @@ add_library(
         ./driver/imu.cpp
         ./driver/serial_port.cpp
         ./driver/imu_1750.cpp
+        ./driver/odom.cpp
 )
 add_library(
         common
@@ -29,6 +38,12 @@ target_link_libraries(
         ${Pangolin_LIBRARIES}
         -lpthread
         -lboost_system
+        ${catkin_LIBRARIES}
+)
+target_link_libraries(
+        driver
+        ${catkin_LIBRARIES}
+        /opt/ros/melodic/lib/libcsm.so
 )
 ################### test ########################
 
@@ -40,4 +55,17 @@ target_link_libraries(
         test_laser
         driver
         common
+        ${catkin_LIBRARIES}
+        ${Pangolin_LIBRARIES}
+        /opt/ros/melodic/lib/libcsm.so
 )
+
+#add_executable(test_imu
+#        ./test/test_imu.cpp
+#        )
+#
+#target_link_libraries(
+#        test_imu
+#        driver
+#        common
+#)
